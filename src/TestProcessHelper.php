@@ -14,6 +14,7 @@
 
 namespace SymfonyCasts\InternalTestHelpers;
 
+use Symfony\Component\Process\InputStream;
 use Symfony\Component\Process\Process;
 
 /**
@@ -26,5 +27,20 @@ final class TestProcessHelper
         $process = Process::fromShellCommandline($command, $workingDir)
             ->mustRun()
         ;
+    }
+
+    public static function runNowInteractive(string $command, array $input, string $workingDir): void
+    {
+        $inputStream = new InputStream();
+        $inputStream->write(current($input));
+
+        $inputStream->onEmpty(static function () use ($inputStream, &$input) {
+            $nextInput = next($input);
+
+            false === $nextInput ? $inputStream->close() : $inputStream->write(sprintf("%s\n", $nextInput));
+        });
+
+        $process = Process::fromShellCommandline(command: $command, cwd: $workingDir, env: ['SHELL_INTERACTIVE' => '1'], input: $inputStream);
+        $process->mustRun();
     }
 }
