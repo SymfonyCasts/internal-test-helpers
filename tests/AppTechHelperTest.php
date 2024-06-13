@@ -5,6 +5,7 @@ namespace SymfonyCasts\InternalTestHelpers\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Mime\Part\File;
 use Symfony\Component\Process\Process;
 use SymfonyCasts\InternalTestHelpers\AppTestHelper;
 use SymfonyCasts\InternalTestHelpers\Tests\ProjectFixture\TestBundleFixture;
@@ -14,14 +15,21 @@ class AppTechHelperTest extends TestCase
 {
     protected function setUp(): void
     {
-//        $this->cleanup();
+        Process::fromShellCommandline(
+            'git init && git config commit.gpgsign false && git commit -am "init"',
+            dirname(__DIR__).'/testBundle'
+        );
     }
 
     // We have to call setUp && tearDown otherwise PHPUnit && the autoloader
     // get confused (nested repositories).
     protected function tearDown(): void
     {
-//        $this->cleanup();
+        $fs = new Filesystem();
+
+        if ($fs->exists($gitDir = dirname(__DIR__).'/testBundle/.git')) {
+            $fs->remove($gitDir);
+        }
     }
 
     public function testInit(): void
