@@ -41,6 +41,11 @@ class AppTechHelperTest extends TestCase
         // Ensure the "project" (our BundleFixture) was cloned
         self::assertDirectoryExists(sprintf('%s/project', $cacheDir));
         self::assertFileExists(sprintf('%s/project/src/TestBundleFixture.php', $cacheDir));
+
+        $expectedAppPath = $helper->createAppForTest();
+
+        self::assertDirectoryExists($expectedAppPath);
+        self::assertFileExists(sprintf('%s/composer.json', $expectedAppPath));
     }
 
     private function cleanup(): void

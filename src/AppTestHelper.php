@@ -164,6 +164,7 @@ class AppTestHelper
             'git config commit.gpgsign false',
             'git add . -f',
             'git commit -a -m "time to make the test donuts"',
+            'git gc --force',
         ];
 
         // We could do this as one long string and probably speed things up,
