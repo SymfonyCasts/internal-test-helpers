@@ -49,7 +49,7 @@ class AppTestHelper
      * E.g. passing in "SymfonyCastsResetPasswordBundle::class" will
      * result in "/your/dev/dir/reset-password-bundle
      *
-     * @param string $bundleClass the name of the bundle class
+     * @param string $bundleClassName the name of the bundle class
      *
      * @return string the root path of the "bundle" being tested without
      *                a trailing "/"
@@ -62,7 +62,7 @@ class AppTestHelper
         $r = new \ReflectionClass($this->bundleClassName);
         $offset = \strlen(sprintf('/src/%s.php', $r->getShortName()));
 
-        $this->rootPath = substr_replace($r->getFileName(), '', sprintf('-%d', $offset));
+        $this->rootPath = substr_replace($r->getFileName(), '', (int) sprintf('-%d', $offset));
         $this->cachePath = sprintf('%s/tests/tmp/cache', $this->rootPath);
         $this->skeletonPath = sprintf('%s/skeleton', $this->cachePath);
         $this->projectPath = sprintf('%s/project', $this->cachePath);

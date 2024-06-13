@@ -29,6 +29,7 @@ final class TestProcessHelper
         ;
     }
 
+    /** @phpstan-ignore missingType.iterableValue */
     public static function runNowInteractive(string $command, array $input, string $workingDir): void
     {
         $inputStream = new InputStream();
