@@ -79,20 +79,4 @@ class AppTechHelperTest extends TestCase
         self::assertDirectoryExists($expectedAppPath);
         self::assertFileExists(sprintf('%s/composer.json', $expectedAppPath));
     }
-
-    private function cleanup(): void
-    {
-        $fixtureBaseDir = __DIR__.'/Fixture/BundleFixture';
-
-        // Git reset && git clean do not remove nested repositories. Use FS to do that.
-        $fs = new Filesystem();
-        if ($fs->exists($path = sprintf('%s/tests', $fixtureBaseDir))) {
-            $fs->remove($path);
-        }
-
-        // Slightly overkill, but just to be sure all of our temp stuff is gone...
-        Process::fromShellCommandline('git reset --hard && git clean -fdxq', $fixtureBaseDir)
-            ->mustRun()
-        ;
-    }
 }
