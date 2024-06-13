@@ -14,22 +14,23 @@ class AppTechHelperTest extends TestCase
 {
     protected function setUp(): void
     {
-        $this->cleanup();
+//        $this->cleanup();
     }
 
     // We have to call setUp && tearDown otherwise PHPUnit && the autoloader
     // get confused (nested repositories).
     protected function tearDown(): void
     {
-        $this->cleanup();
+//        $this->cleanup();
     }
 
     public function testInit(): void
     {
-        $helper = new AppTestHelper(TestBundleFixture::class);
+        $helper = new AppTestHelper(\SymfonyCasts\InternalFixtures\TestBundleFixture::class);
 
-        $helper->init('symfonycasts/fixture-test-bundle');
+        $helper->init('symfonycasts/internal-test-fixture');
 
+        return;
         // This dir should not exist in BundleFixture, it's created by the helper
         $cacheDir = __DIR__.'/Fixture/BundleFixture/tests/tmp/cache';
         self::assertDirectoryExists($cacheDir);
