@@ -9,6 +9,9 @@ use Symfony\Component\Process\Process;
 use SymfonyCasts\InternalFixtures\TestBundleFixture;
 use SymfonyCasts\InternalTestHelpers\AppTestHelper;
 
+/**
+ * @covers AppTestHelper
+ */
 #[CoversClass(AppTestHelper::class)]
 class AppTechHelperTest extends TestCase
 {
