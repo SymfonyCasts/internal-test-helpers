@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * ----------------------------------------------------------------------------
+ * You shouldn't use this package. We do NOT provide support or BC Guarantees.
+ * We will break things between releases, pull requests, commits, and/or merges.
+ * ----------------------------------------------------------------------------
+ *
+ * This file is part of the SymfonyCasts Internal Test Helpers package.
+ * Copyright (c) SymfonyCasts <https://symfonycasts.com/>
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace SymfonyCasts\InternalTestHelpers\Tests;
 
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -10,7 +22,7 @@ use SymfonyCasts\InternalFixtures\TestBundleFixture;
 use SymfonyCasts\InternalTestHelpers\AppTestHelper;
 
 /**
- * @covers AppTestHelper
+ * @covers \AppTestHelper
  */
 #[CoversClass(AppTestHelper::class)]
 class AppTechHelperTest extends TestCase
@@ -23,14 +35,14 @@ class AppTechHelperTest extends TestCase
         // we need the fixture to be a git repo so the helper can clone it.
         Process::fromShellCommandline(
             'git init && git config user.name "symfonycasts" && git config user.email "symfonycasts@example.com" && git config commit.gpgsign false && git add . && git commit -am "init"',
-            dirname(__DIR__).'/testBundle'
+            \dirname(__DIR__).'/testBundle'
         )->mustRun();
     }
 
     // we dont want the fixture to be a repo after the test, otherwise we cant maintain it.
     protected function tearDown(): void
     {
-        $fixturePath = dirname(__DIR__).'/testBundle';
+        $fixturePath = \dirname(__DIR__).'/testBundle';
         $fs = new Filesystem();
 
         if ($this->cleanupAfterTest) {
@@ -51,7 +63,7 @@ class AppTechHelperTest extends TestCase
         $helper->init('symfonycasts/internal-test-fixture');
 
         // This dir should not exist in BundleFixture, it's created by the helper
-        $cacheDir = dirname(__DIR__).'/testBundle/tests/tmp/cache';
+        $cacheDir = \dirname(__DIR__).'/testBundle/tests/tmp/cache';
         self::assertDirectoryExists($cacheDir);
 
         // Ensure the skeleton was created
