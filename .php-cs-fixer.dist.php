@@ -5,7 +5,11 @@ if (!file_exists(__DIR__.'/src')) {
 }
 
 $finder = (new PhpCsFixer\Finder())
-    ->in([__DIR__.'/src'])
+    ->in([
+        __DIR__.'/src',
+        __DIR__.'/tests',
+        __DIR__.'/testBundle'
+    ])
 ;
 
 return (new PhpCsFixer\Config())
