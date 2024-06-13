@@ -22,7 +22,7 @@ class AppTechHelperTest extends TestCase
     {
         // we need the fixture to be a git repo so the helper can clone it.
         Process::fromShellCommandline(
-            'git init && git config commit.gpgsign false && git add . && git commit -am "init"',
+            'git init && git config user.name "symfonycasts" && git config user.email "symfonycasts@example.com" && git config commit.gpgsign false && git add . && git commit -am "init"',
             dirname(__DIR__).'/testBundle'
         )->mustRun();
     }
