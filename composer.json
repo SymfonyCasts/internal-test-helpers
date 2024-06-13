@@ -26,7 +26,7 @@
     "autoload-dev": {
         "psr-4": {
             "SymfonyCasts\\InternalTestHelpers\\Tests\\": "tests/",
-            "SymfonyCasts\\InternalFixtures\\": "testFixtureSubmodule/src/"
+            "SymfonyCasts\\InternalFixtures\\": "testFixture/src/"
         }
     },
     "scripts": {
