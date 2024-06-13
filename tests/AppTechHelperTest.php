@@ -5,42 +5,50 @@ namespace SymfonyCasts\InternalTestHelpers\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Mime\Part\File;
 use Symfony\Component\Process\Process;
+use SymfonyCasts\InternalFixtures\TestBundleFixture;
 use SymfonyCasts\InternalTestHelpers\AppTestHelper;
-use SymfonyCasts\InternalTestHelpers\Tests\ProjectFixture\TestBundleFixture;
 
 #[CoversClass(AppTestHelper::class)]
 class AppTechHelperTest extends TestCase
 {
+    /** @var bool Set false to keep the `testBundle/tests` dir in development. */
+    private bool $cleanupAfterTest = true;
+
     protected function setUp(): void
     {
+        // we need the fixture to be a git repo so the helper can clone it.
         Process::fromShellCommandline(
-            'git init && git config commit.gpgsign false && git commit -am "init"',
+            'git init && git config commit.gpgsign false && git add . && git commit -am "init"',
             dirname(__DIR__).'/testBundle'
-        );
+        )->mustRun();
     }
 
-    // We have to call setUp && tearDown otherwise PHPUnit && the autoloader
-    // get confused (nested repositories).
+    // we dont want the fixture to be a repo after the test, otherwise we cant maintain it.
     protected function tearDown(): void
     {
+        $fixturePath = dirname(__DIR__).'/testBundle';
         $fs = new Filesystem();
 
-        if ($fs->exists($gitDir = dirname(__DIR__).'/testBundle/.git')) {
+        if ($this->cleanupAfterTest) {
+            $fs->remove($fixturePath.'/tests');
+            Process::fromShellCommandline('git reset --hard && git clean -fdx', $fixturePath)
+                ->mustRun()
+            ;
+        }
+
+        if ($fs->exists($gitDir = $fixturePath.'/.git')) {
             $fs->remove($gitDir);
         }
     }
 
     public function testInit(): void
     {
-        $helper = new AppTestHelper(\SymfonyCasts\InternalFixtures\TestBundleFixture::class);
-
+        $helper = new AppTestHelper(TestBundleFixture::class);
         $helper->init('symfonycasts/internal-test-fixture');
 
-        return;
         // This dir should not exist in BundleFixture, it's created by the helper
-        $cacheDir = __DIR__.'/Fixture/BundleFixture/tests/tmp/cache';
+        $cacheDir = dirname(__DIR__).'/testBundle/tests/tmp/cache';
         self::assertDirectoryExists($cacheDir);
 
         // Ensure the skeleton was created
