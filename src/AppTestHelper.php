@@ -28,10 +28,23 @@ class AppTestHelper
 {
     public readonly Filesystem $fs;
 
+    /** The root dir of the project using this helper. */
+    public readonly string $rootPath;
+
+    /** The temp. path used to store test data, skeleton, apps, etc... */
+    public readonly string $cachePath;
+
+    /** The path used to store a fresh copy of the symfony/skeleton */
+    public readonly string $skeletonPath;
+
+    /** The path used to store a fresh copy of the project/bundle we are testing. */
+    public readonly string $projectPath;
+
     /**
      * @TODO - reword this to make it better....
      * To get the "root path" of the project, we need the "bundle" class,
-     * which we then parse and return an absolute path.
+     * which we then parse and return an absolute path. In reality, this
+     * can be any class that is a direct child of the "src/" directory.
      *
      * E.g. passing in "SymfonyCastsResetPasswordBundle::class" will
      * result in "/your/dev/dir/reset-password-bundle
@@ -45,53 +58,61 @@ class AppTestHelper
         public string $bundleClassName,
     ) {
         $this->fs = new Filesystem();
+
+        $r = new \ReflectionClass($this->bundleClassName);
+        $offset = \strlen(sprintf('/src/%s.php', $r->getShortName()));
+
+        $this->rootPath = substr_replace($r->getFileName(), '', sprintf('-%d', $offset));
+        $this->cachePath = sprintf('%s/tests/tmp/cache', $this->rootPath);
+        $this->skeletonPath = sprintf('%s/skeleton', $this->cachePath);
+        $this->projectPath = sprintf('%s/project', $this->cachePath);
     }
 
     /**
-     * @param string $packagistName The name of the project/bundle used when doing a
-     *                              composer install.
-     *                              e.g. "symfonycasts/reset-password-bundle"
-     * @param bool $startFromScratch Setting this to true will "rm -rf tmp/cache".
+     * @param string $packagistName    The name of the project/bundle used when doing a
+     *                                 composer install.
+     *                                 e.g. "symfonycasts/reset-password-bundle"
+     * @param bool   $startFromScratch setting this to true will "rm -rf tmp/cache"
      */
     public function init(string $packagistName, bool $startFromScratch = false): self
     {
-        if ($startFromScratch && $this->fs->exists($this->getCachePath())) {
-            $this->fs->remove($this->getCachePath());
+        if ($startFromScratch && $this->fs->exists($this->cachePath)) {
+            $this->fs->remove($this->cachePath);
         }
 
-        if (!$this->fs->exists($this->getCachePath())) {
-            $this->fs->mkdir($this->getCachePath());
+        if (!$this->fs->exists($this->cachePath)) {
+            $this->fs->mkdir($this->cachePath);
         }
 
-        if ($this->fs->exists($this->getSkeletonPath()) && $this->fs->exists($this->getProjectPath())) {
+        if ($this->fs->exists($this->skeletonPath) && $this->fs->exists($this->projectPath)) {
             return $this;
         }
 
         // Get & install symfony/skeleton, so we can clone it for each test
         TestProcessHelper::runNow(
-            command: sprintf('composer create-project symfony/skeleton %s --prefer-dist', $this->getSkeletonPath()),
-            workingDir: $this->getCachePath()
+            command: sprintf('composer create-project symfony/skeleton %s --prefer-dist', $this->skeletonPath),
+            workingDir: $this->cachePath
         );
 
         // Setup the skeleton as a "webapp" (similar to symfony new --webapp)
         TestProcessHelper::runNow(
             command: 'composer require symfony/webapp-pack --prefer-dist',
-            workingDir: $this->getSkeletonPath()
+            workingDir: $this->skeletonPath
         );
 
         // Copy project/bundle to the "project" dir for testing
         TestProcessHelper::runNow(
-            command: sprintf('git clone %s %s', $this->getRootPath(), $this->getProjectPath()),
-            workingDir: $this->getCachePath()
+            command: sprintf('git clone %s %s', $this->rootPath, $this->projectPath),
+            workingDir: $this->cachePath
         );
 
         // Modify the skeleton to use the cached project/bundle for the composer install.
-        $composerFileContents = file_get_contents($composerJsonPath = sprintf('%s/composer.json', $this->getProjectPath()));
+        $composerFileContents = file_get_contents($composerJsonPath = sprintf('%s/composer.json', $this->skeletonPath));
         $composerJsonArray = json_decode($composerFileContents, associative: true, flags: \JSON_THROW_ON_ERROR);
 
         $composerJsonArray['repositories'][$packagistName] = [
             'type' => 'path',
-            'url' => $this->getProjectPath(),
+            'url' => $this->projectPath,
             'options' => [
                 'versions' => [
                     $packagistName => '99999.99',
@@ -105,11 +126,11 @@ class AppTestHelper
         // Install the cached project/bundle in the cached skeleton
         TestProcessHelper::runNow(
             command: sprintf('composer require %s', $packagistName),
-            workingDir: $this->getSkeletonPath()
+            workingDir: $this->skeletonPath
         );
 
         // Let's re-init the git repo for the skeleton and commit the vendor dir
-        $this->reinitGitRepository($this->getSkeletonPath());
+        $this->reinitGitRepository($this->skeletonPath);
 
         return $this;
     }
@@ -119,41 +140,14 @@ class AppTestHelper
     {
         // random_bytes is "overkill" - we just need a random string
         $appId = bin2hex(random_bytes(5));
-        $appPath = sprintf('%s/app/%s', $this->getCachePath(), $appId);
+        $appPath = sprintf('%s/app/%s', $this->cachePath, $appId);
 
         TestProcessHelper::runNow(
-            command: sprintf('git clone %s %s', $this->getSkeletonPath(), $appPath),
-            workingDir: $this->getCachePath()
+            command: sprintf('git clone %s %s', $this->skeletonPath, $appPath),
+            workingDir: $this->cachePath
         );
 
         return $appPath;
-    }
-
-    /** The root dir of the project using this helper. */
-    public function getRootPath(): string
-    {
-        $r = new \ReflectionClass($this->bundleClassName);
-        $offset = \strlen(sprintf('/src/%s.php', $r->getShortName()));
-
-        return substr_replace($r->getFileName(), '', sprintf('-%d', $offset));
-    }
-
-    /** The temp. path used to store test data, skeleton, apps, etc... */
-    public function getCachePath(): string
-    {
-        return sprintf('%s/tests/tmp/cache', $this->getRootPath());
-    }
-
-    /** The path used to store a fresh copy of the symfony/skeleton */
-    public function getSkeletonPath(): string
-    {
-        return sprintf('%s/skeleton', $this->getCachePath());
-    }
-
-    /** The path used to store a fresh copy of the project/bundle we are testing. */
-    public function getProjectPath(): string
-    {
-        return sprintf('%s/project', $this->getCachePath());
     }
 
     private function reinitGitRepository(string $path): void
