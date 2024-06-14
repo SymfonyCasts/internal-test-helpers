@@ -26,6 +26,9 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class AppTestHelper
 {
+    /** Use these ENV's when running "git" in a process to ignore the hosts global git configuration. */
+    private const GIT_CMD_ENV = ['GIT_CONFIG_SYSTEM' => '', 'GIT_CONFIG_GLOBAL' => ''];
+
     public readonly Filesystem $fs;
 
     /** The root dir of the project using this helper. */
@@ -49,13 +52,16 @@ class AppTestHelper
      * E.g. passing in "SymfonyCastsResetPasswordBundle::class" will
      * result in "/your/dev/dir/reset-password-bundle
      *
-     * @param string $bundleClassName the name of the bundle class
-     *
-     * @return string the root path of the "bundle" being tested without
-     *                a trailing "/"
+     * @param string   $bundleClassName      the name of the bundle class
+     * @param string[] $skeletonDependencies an array of composer packages to be
+     *                                       installed into the skeleton. e.g.
+     *                                       ['symfonycasts/reset-password-bundle']
+     *                                       or
+     *                                       ['symfonycasts/reset-password-bundle:2.0.0']
      */
     public function __construct(
-        public string $bundleClassName,
+        public readonly string $bundleClassName,
+        public array $skeletonDependencies = [],
     ) {
         $this->fs = new Filesystem();
 
@@ -103,7 +109,8 @@ class AppTestHelper
         // Copy project/bundle to the "project" dir for testing
         TestProcessHelper::runNow(
             command: sprintf('git clone %s %s', $this->rootPath, $this->projectPath),
-            workingDir: $this->cachePath
+            workingDir: $this->cachePath,
+            env: self::GIT_CMD_ENV
         );
 
         // Modify the skeleton to use the cached project/bundle for the composer install.
@@ -123,9 +130,13 @@ class AppTestHelper
         $encodedComposerJson = json_encode($composerJsonArray, flags: \JSON_THROW_ON_ERROR | \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES);
         file_put_contents($composerJsonPath, $encodedComposerJson);
 
+        // Parse the skeleton dependencies array into a usable string
+        $this->skeletonDependencies[] = $packagistName;
+        $dependencies = implode(' ', $this->skeletonDependencies);
+
         // Install the cached project/bundle in the cached skeleton
         TestProcessHelper::runNow(
-            command: sprintf('composer require %s', $packagistName),
+            command: sprintf('composer require %s', $dependencies),
             workingDir: $this->skeletonPath
         );
 
@@ -144,7 +155,8 @@ class AppTestHelper
 
         TestProcessHelper::runNow(
             command: sprintf('git clone %s %s', $this->skeletonPath, $appPath),
-            workingDir: $this->cachePath
+            workingDir: $this->cachePath,
+            env: self::GIT_CMD_ENV
         );
 
         return $appPath;
@@ -160,17 +172,11 @@ class AppTestHelper
             'git init',
             'git config user.name "symfonycasts"',
             'git config user.email "symfonycasts@example.com"',
-            'git config user.signingkey false',
-            'git config commit.gpgsign false',
             'git add . -f',
             'git commit -a -m "time to make the test donuts"',
             'git gc --force',
         ];
 
-        // We could do this as one long string and probably speed things up,
-        // but for now, this is easier for dev'ing.
-        foreach ($gitCommands as $command) {
-            TestProcessHelper::runNow($command, $path);
-        }
+        TestProcessHelper::runNow(implode(' && ', $gitCommands), $path, self::GIT_CMD_ENV);
     }
 }

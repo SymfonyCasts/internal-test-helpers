@@ -22,9 +22,15 @@ use Symfony\Component\Process\Process;
  */
 final class TestProcessHelper
 {
-    public static function runNow(string $command, string $workingDir): void
+    /**
+     * @param string                    $command
+     * @param string                    $workingDir
+     * @param array<string, string|int> $env        Key-value pair to set when running a process
+     *                                              e.g. ['GIT_CONFIG' => '/path']
+     */
+    public static function runNow(string $command, string $workingDir, array $env = []): void
     {
-        $process = Process::fromShellCommandline($command, $workingDir)
+        Process::fromShellCommandline($command, $workingDir, $env)
             ->mustRun()
         ;
     }

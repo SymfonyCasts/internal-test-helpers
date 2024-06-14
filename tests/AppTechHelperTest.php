@@ -79,4 +79,13 @@ class AppTechHelperTest extends TestCase
         self::assertDirectoryExists($expectedAppPath);
         self::assertFileExists(sprintf('%s/composer.json', $expectedAppPath));
     }
+
+    public function testInitHandlesAdditionalSkeletonDependencies(): void
+    {
+        $helper = new AppTestHelper(TestBundleFixture::class, ['symfonycasts/reset-password-bundle']);
+        $helper->init('symfonycasts/internal-test-fixture');
+
+        $cacheDir = \dirname(__DIR__).'/testBundle/tests/tmp/cache';
+        self::assertDirectoryExists(sprintf('%s/skeleton/vendor/symfonycasts/reset-password-bundle', $cacheDir));
+    }
 }
