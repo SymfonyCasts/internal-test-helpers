@@ -26,6 +26,9 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class AppTestHelper
 {
+    /** Use these ENV's when running "git" in a process to ignore the hosts global git configuration. */
+    private const GIT_CMD_ENV = ['GIT_CONFIG_SYSTEM' => '', 'GIT_CONFIG_GLOBAL' => ''];
+
     public readonly Filesystem $fs;
 
     /** The root dir of the project using this helper. */
@@ -103,7 +106,8 @@ class AppTestHelper
         // Copy project/bundle to the "project" dir for testing
         TestProcessHelper::runNow(
             command: sprintf('git clone %s %s', $this->rootPath, $this->projectPath),
-            workingDir: $this->cachePath
+            workingDir: $this->cachePath,
+            env: self::GIT_CMD_ENV
         );
 
         // Modify the skeleton to use the cached project/bundle for the composer install.
@@ -144,7 +148,8 @@ class AppTestHelper
 
         TestProcessHelper::runNow(
             command: sprintf('git clone %s %s', $this->skeletonPath, $appPath),
-            workingDir: $this->cachePath
+            workingDir: $this->cachePath,
+            env: self::GIT_CMD_ENV
         );
 
         return $appPath;
@@ -160,17 +165,11 @@ class AppTestHelper
             'git init',
             'git config user.name "symfonycasts"',
             'git config user.email "symfonycasts@example.com"',
-            'git config user.signingkey false',
-            'git config commit.gpgsign false',
             'git add . -f',
             'git commit -a -m "time to make the test donuts"',
             'git gc --force',
         ];
 
-        // We could do this as one long string and probably speed things up,
-        // but for now, this is easier for dev'ing.
-        foreach ($gitCommands as $command) {
-            TestProcessHelper::runNow($command, $path);
-        }
+        TestProcessHelper::runNow(implode(' && ', $gitCommands), $path, self::GIT_CMD_ENV);
     }
 }
