@@ -52,13 +52,16 @@ class AppTestHelper
      * E.g. passing in "SymfonyCastsResetPasswordBundle::class" will
      * result in "/your/dev/dir/reset-password-bundle
      *
-     * @param string $bundleClassName the name of the bundle class
-     *
-     * @return string the root path of the "bundle" being tested without
-     *                a trailing "/"
+     * @param string   $bundleClassName      the name of the bundle class
+     * @param string[] $skeletonDependencies an array of composer packages to be
+     *                                       installed into the skeleton. e.g.
+     *                                       ['symfonycasts/reset-password-bundle']
+     *                                       or
+     *                                       ['symfonycasts/reset-password-bundle:2.0.0']
      */
     public function __construct(
-        public string $bundleClassName,
+        public readonly string $bundleClassName,
+        public array $skeletonDependencies = [],
     ) {
         $this->fs = new Filesystem();
 
@@ -127,9 +130,13 @@ class AppTestHelper
         $encodedComposerJson = json_encode($composerJsonArray, flags: \JSON_THROW_ON_ERROR | \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_SLASHES);
         file_put_contents($composerJsonPath, $encodedComposerJson);
 
+        // Parse the skeleton dependencies array into a usable string
+        $this->skeletonDependencies[] = $packagistName;
+        $dependencies = implode(' ', $this->skeletonDependencies);
+
         // Install the cached project/bundle in the cached skeleton
         TestProcessHelper::runNow(
-            command: sprintf('composer require %s', $packagistName),
+            command: sprintf('composer require %s', $dependencies),
             workingDir: $this->skeletonPath
         );
 
