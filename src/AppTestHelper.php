@@ -27,7 +27,7 @@ use Symfony\Component\Filesystem\Filesystem;
 class AppTestHelper
 {
     /** Use these ENV's when running "git" in a process to ignore the hosts global git configuration. */
-    private const GIT_CMD_ENV = ['GIT_CONFIG_SYSTEM' => '', 'GIT_CONFIG_GLOBAL' => ''];
+    private const GIT_CMD_ENV = ['GIT_CONFIG_SYSTEM' => '/dev/null', 'GIT_CONFIG_GLOBAL' => '/dev/null'];
 
     public readonly Filesystem $fs;
 
@@ -154,7 +154,7 @@ class AppTestHelper
         $appPath = sprintf('%s/app/%s', $this->cachePath, $appId);
 
         TestProcessHelper::runNow(
-            command: sprintf('git clone %s %s --depth 1 --no-tags', $this->skeletonPath, $appPath),
+            command: sprintf('git clone %s %s', $this->skeletonPath, $appPath),
             workingDir: $this->cachePath,
             env: self::GIT_CMD_ENV
         );
@@ -170,11 +170,12 @@ class AppTestHelper
 
         $gitCommands = [
             'git init',
+            'git config maintenance.gc.enabled false',
             'git config user.name "symfonycasts"',
             'git config user.email "symfonycasts@example.com"',
             'git add . -f',
             'git commit -a -m "time to make the test donuts" --no-edit',
-            'git gc --force',
+            'git gc --force --prune=now',
         ];
 
         TestProcessHelper::runNow(implode(' && ', $gitCommands), $path, self::GIT_CMD_ENV);
