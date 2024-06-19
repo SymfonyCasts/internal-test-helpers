@@ -108,7 +108,7 @@ class AppTestHelper
 
         // Copy project/bundle to the "project" dir for testing
         TestProcessHelper::runNow(
-            command: sprintf('git clone %s %s', $this->rootPath, $this->projectPath),
+            command: sprintf('git clone %s %s --depth 1 --no-tags', $this->rootPath, $this->projectPath),
             workingDir: $this->cachePath,
             env: self::GIT_CMD_ENV
         );
@@ -154,7 +154,7 @@ class AppTestHelper
         $appPath = sprintf('%s/app/%s', $this->cachePath, $appId);
 
         TestProcessHelper::runNow(
-            command: sprintf('git clone %s %s', $this->skeletonPath, $appPath),
+            command: sprintf('git clone %s %s --depth 1 --no-tags', $this->skeletonPath, $appPath),
             workingDir: $this->cachePath,
             env: self::GIT_CMD_ENV
         );
@@ -173,7 +173,7 @@ class AppTestHelper
             'git config user.name "symfonycasts"',
             'git config user.email "symfonycasts@example.com"',
             'git add . -f',
-            'git commit -a -m "time to make the test donuts"',
+            'git commit -a -m "time to make the test donuts" --no-edit',
             'git gc --force',
         ];
 
