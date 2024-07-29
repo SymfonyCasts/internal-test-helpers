@@ -66,12 +66,12 @@ class AppTestHelper
         $this->fs = new Filesystem();
 
         $r = new \ReflectionClass($this->bundleClassName);
-        $offset = \strlen(sprintf('/src/%s.php', $r->getShortName()));
+        $offset = \strlen(\sprintf('/src/%s.php', $r->getShortName()));
 
-        $this->rootPath = substr_replace($r->getFileName(), '', (int) sprintf('-%d', $offset));
-        $this->cachePath = sprintf('%s/tests/tmp/cache', $this->rootPath);
-        $this->skeletonPath = sprintf('%s/skeleton', $this->cachePath);
-        $this->projectPath = sprintf('%s/project', $this->cachePath);
+        $this->rootPath = substr_replace($r->getFileName(), '', (int) \sprintf('-%d', $offset));
+        $this->cachePath = \sprintf('%s/tests/tmp/cache', $this->rootPath);
+        $this->skeletonPath = \sprintf('%s/skeleton', $this->cachePath);
+        $this->projectPath = \sprintf('%s/project', $this->cachePath);
     }
 
     /**
@@ -96,7 +96,7 @@ class AppTestHelper
 
         // Get & install symfony/skeleton, so we can clone it for each test
         TestProcessHelper::runNow(
-            command: sprintf('composer create-project symfony/skeleton %s --prefer-dist', $this->skeletonPath),
+            command: \sprintf('composer create-project symfony/skeleton %s --prefer-dist', $this->skeletonPath),
             workingDir: $this->cachePath
         );
 
@@ -108,13 +108,13 @@ class AppTestHelper
 
         // Copy project/bundle to the "project" dir for testing
         TestProcessHelper::runNow(
-            command: sprintf('git clone %s %s --depth 1 --no-tags', $this->rootPath, $this->projectPath),
+            command: \sprintf('git clone %s %s --depth 1 --no-tags', $this->rootPath, $this->projectPath),
             workingDir: $this->cachePath,
             env: self::GIT_CMD_ENV
         );
 
         // Modify the skeleton to use the cached project/bundle for the composer install.
-        $composerFileContents = file_get_contents($composerJsonPath = sprintf('%s/composer.json', $this->skeletonPath));
+        $composerFileContents = file_get_contents($composerJsonPath = \sprintf('%s/composer.json', $this->skeletonPath));
         $composerJsonArray = json_decode($composerFileContents, associative: true, flags: \JSON_THROW_ON_ERROR);
 
         $composerJsonArray['repositories'][$packagistName] = [
@@ -136,7 +136,7 @@ class AppTestHelper
 
         // Install the cached project/bundle in the cached skeleton
         TestProcessHelper::runNow(
-            command: sprintf('composer require %s', $dependencies),
+            command: \sprintf('composer require %s', $dependencies),
             workingDir: $this->skeletonPath
         );
 
@@ -151,10 +151,10 @@ class AppTestHelper
     {
         // random_bytes is "overkill" - we just need a random string
         $appId = bin2hex(random_bytes(5));
-        $appPath = sprintf('%s/app/%s', $this->cachePath, $appId);
+        $appPath = \sprintf('%s/app/%s', $this->cachePath, $appId);
 
         TestProcessHelper::runNow(
-            command: sprintf('git clone %s %s', $this->skeletonPath, $appPath),
+            command: \sprintf('git clone %s %s', $this->skeletonPath, $appPath),
             workingDir: $this->cachePath,
             env: self::GIT_CMD_ENV
         );
@@ -164,7 +164,7 @@ class AppTestHelper
 
     private function reinitGitRepository(string $path): void
     {
-        if ($this->fs->exists($gitPath = sprintf('%s/.git', $path))) {
+        if ($this->fs->exists($gitPath = \sprintf('%s/.git', $path))) {
             $this->fs->remove($gitPath);
         }
 
