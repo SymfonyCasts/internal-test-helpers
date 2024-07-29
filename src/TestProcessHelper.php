@@ -44,7 +44,7 @@ final class TestProcessHelper
         $inputStream->onEmpty(static function () use ($inputStream, &$input) {
             $nextInput = next($input);
 
-            false === $nextInput ? $inputStream->close() : $inputStream->write(sprintf("%s\n", $nextInput));
+            false === $nextInput ? $inputStream->close() : $inputStream->write(\sprintf("%s\n", $nextInput));
         });
 
         $process = Process::fromShellCommandline(command: $command, cwd: $workingDir, env: ['SHELL_INTERACTIVE' => '1'], input: $inputStream);

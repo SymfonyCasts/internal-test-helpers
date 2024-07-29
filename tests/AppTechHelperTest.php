@@ -67,17 +67,17 @@ class AppTechHelperTest extends TestCase
         self::assertDirectoryExists($cacheDir);
 
         // Ensure the skeleton was created
-        self::assertDirectoryExists(sprintf('%s/skeleton', $cacheDir));
-        self::assertFileExists(sprintf('%s/skeleton/src/Kernel.php', $cacheDir));
+        self::assertDirectoryExists(\sprintf('%s/skeleton', $cacheDir));
+        self::assertFileExists(\sprintf('%s/skeleton/src/Kernel.php', $cacheDir));
 
         // Ensure the "project" (our BundleFixture) was cloned
-        self::assertDirectoryExists(sprintf('%s/project', $cacheDir));
-        self::assertFileExists(sprintf('%s/project/src/TestBundleFixture.php', $cacheDir));
+        self::assertDirectoryExists(\sprintf('%s/project', $cacheDir));
+        self::assertFileExists(\sprintf('%s/project/src/TestBundleFixture.php', $cacheDir));
 
         $expectedAppPath = $helper->createAppForTest();
 
         self::assertDirectoryExists($expectedAppPath);
-        self::assertFileExists(sprintf('%s/composer.json', $expectedAppPath));
+        self::assertFileExists(\sprintf('%s/composer.json', $expectedAppPath));
     }
 
     public function testInitHandlesAdditionalSkeletonDependencies(): void
@@ -86,6 +86,6 @@ class AppTechHelperTest extends TestCase
         $helper->init('symfonycasts/internal-test-fixture');
 
         $cacheDir = \dirname(__DIR__).'/testBundle/tests/tmp/cache';
-        self::assertDirectoryExists(sprintf('%s/skeleton/vendor/symfonycasts/reset-password-bundle', $cacheDir));
+        self::assertDirectoryExists(\sprintf('%s/skeleton/vendor/symfonycasts/reset-password-bundle', $cacheDir));
     }
 }
